@@ -18,12 +18,12 @@ int main(int argc, char *argv[]) {
     // you can optionally have another argument with a
     // path to a sound that you wanto to be played
     // instead of "mamma mia" from super mario
-    TweetNotifier tweet_not = TweetNotifier(username,
+    tn::TweetNotifier tweet_not(username,
         kConsKey, kConsSec, kAtokKey, kAtokSec);
-    TnStatus status = tweet_not.start_notifier();
-    if(status == Get_Id_Error)
+    tn::TnStatus status = tweet_not.start_notifier();
+    if(status == tn::Get_Id_Error)
         cout << "error getting user id" << endl;
-    else if(status == Stream_Connect_Error)
+    else if(status == tn::Stream_Connect_Error)
         cout << "error connecting to stream" << endl;
     else; // status is Ok, stream just disconnected, try to reconnect
 
