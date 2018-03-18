@@ -20,57 +20,59 @@ namespace {
     );
 }
 
-const string tn::TweetNotifier::ID_URL =
-        string("https://api.twitter.com/1.1/users/show.json?screen_name=");
-const string tn::TweetNotifier::STREAM_URL =
-        string("https://stream.twitter.com/1.1/statuses/filter.json?follow=");
+namespace tn {
+    const string TweetNotifier::ID_URL =
+            string("https://api.twitter.com/1.1/users/show.json?screen_name=");
+    const string TweetNotifier::STREAM_URL =
+            string("https://stream.twitter.com/1.1/statuses/filter.json?follow=");
 
-// constructor
-tn::TweetNotifier::TweetNotifier(
-    char *screen_name,
-    const char *cons_key, const char *cons_sec,
-    const char *atok_key, const char *atok_sec,
-    string sound_path
-) : screen_name(screen_name),
-    cons_key(cons_key),
-    cons_sec(cons_sec),
-    atok_key(atok_key),
-    atok_sec(atok_sec) {
-        if(!buffer.loadFromFile(sound_path)) {
-            buffer.loadFromFile("sound/mario_mamma_mia.wav");
-        }
-        sound.setBuffer(buffer);
-}
+    // constructor
+    TweetNotifier::TweetNotifier(
+        char *screen_name,
+        const char *cons_key, const char *cons_sec,
+        const char *atok_key, const char *atok_sec,
+        string sound_path
+    ) : screen_name(screen_name),
+        cons_key(cons_key),
+        cons_sec(cons_sec),
+        atok_key(atok_key),
+        atok_sec(atok_sec) {
+            if(!buffer.loadFromFile(sound_path)) {
+                buffer.loadFromFile("sound/mario_mamma_mia.wav");
+            }
+            sound.setBuffer(buffer);
+    }
 
-// start
-tn::TnStatus tn::TweetNotifier::start_notifier(void) {
-    tn::TnStatus status = Ok;
-    string id_url = ID_URL + screen_name;
-    MyData buffer = new struct myData;
-    char *signed_url;
-    buffer -> sound = sound;
-    curl_global_init(CURL_GLOBAL_ALL);
-
-    signed_url = oauth_sign_url2(
-        id_url.c_str(), NULL, OA_HMAC, "GET",
-        cons_key, cons_sec, atok_key, atok_sec
-    );
-    if(get_request(write_id, (void *)buffer, signed_url)) {
-        string stream_url = STREAM_URL + (buffer -> user_id);
+    // start
+    TnStatus TweetNotifier::start_notifier(void) {
+        TnStatus status = Ok;
+        string id_url = ID_URL + screen_name;
+        MyData buffer = new struct myData;
+        char *signed_url;
+        buffer -> sound = sound;
+        curl_global_init(CURL_GLOBAL_ALL);
 
         signed_url = oauth_sign_url2(
-            stream_url.c_str(), NULL, OA_HMAC, "GET",
+            id_url.c_str(), NULL, OA_HMAC, "GET",
             cons_key, cons_sec, atok_key, atok_sec
         );
+        if(get_request(write_id, (void *)buffer, signed_url)) {
+            string stream_url = STREAM_URL + (buffer -> user_id);
 
-        if(get_request(detect_tweets, (void *)buffer, signed_url));
-        else status = Stream_Connect_Error;
+            signed_url = oauth_sign_url2(
+                stream_url.c_str(), NULL, OA_HMAC, "GET",
+                cons_key, cons_sec, atok_key, atok_sec
+            );
+
+            if(get_request(detect_tweets, (void *)buffer, signed_url));
+            else status = Stream_Connect_Error;
+        }
+        else
+            status = Get_Id_Error;
+        curl_global_cleanup();
+        delete buffer;
+        return status;
     }
-    else
-        status = Get_Id_Error;
-    curl_global_cleanup();
-    delete buffer;
-    return status;
 }
 
 namespace {
