@@ -1,6 +1,6 @@
 # Tweet Notifier
 
-Use tweet notifier to be notified you everytime a given
+Use tweet notifier to be notified everytime a given
 twitter user posts. The notification consists in playing a sound, the default
 is "mamma mia" from super mario, but you can use your own.
 
